@@ -206,6 +206,8 @@ MP        QChem       QChemMP4SDQTest       basicQChem5.1         water_mp4sdq.o
 MP        QChem       QChemMP4SDTQTest      basicQChem5.1         water_mp4.out
 MP        Turbomole   GenericMP2Test        basicTurbomole7.2     water_mp2/basis    water_mp2/control    water_mp2/coord    water_mp2/mos    water_mp2/dscf.out    water_mp2/ccsdf12.out
 
+NMR       ORCA        GenericNMRTest        basicORCA4.0          dvb_nmr.out
+
 Polar     DALTON      ReferencePolarTest    basicDALTON-2015      Trp_polar_abalnr.out
 Polar     GAMESS      ReferencePolarTest    basicGAMESS-US2017    Trp_polar_tdhf.out
 Polar     GAMESS      ReferencePolarTest    basicGAMESS-US2018    Trp_polar_tdhf.out
