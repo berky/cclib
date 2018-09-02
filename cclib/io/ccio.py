@@ -40,6 +40,8 @@ from cclib.io import cjsonreader
 from cclib.io import cjsonwriter
 from cclib.io import cmlwriter
 from cclib.io import moldenwriter
+from cclib.io import qcjsonreader
+from cclib.io import qcjsonwriter
 from cclib.io import wfxwriter
 from cclib.io import xyzreader
 from cclib.io import xyzwriter
@@ -100,15 +102,15 @@ triggers = [
 
 readerclasses = {
     'cjson': cjsonreader.CJSON,
-    'json': cjsonreader.CJSON,
+    'qcjson': qcjsonreader.QCJSONReader,
     'xyz': xyzreader.XYZ,
 }
 
 writerclasses = {
     'cjson': cjsonwriter.CJSON,
-    'json': cjsonwriter.CJSON,
     'cml': cmlwriter.CML,
     'molden': moldenwriter.MOLDEN,
+    'qcjson': qcjsonwriter.QCJSONWriter,
     'wfx': wfxwriter.WFXWriter,
     'xyz': xyzwriter.XYZ,
 }
