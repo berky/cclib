@@ -588,8 +588,8 @@ class vibsyms(Attribute):
 
 
 # https://stackoverflow.com/questions/1796180/how-can-i-get-a-list-of-all-classes-within-current-module-in-python#1796247
-attributes = dict()
+attribute_classes = dict()
 for name, obj in inspect.getmembers(sys.modules[__name__]):
     if inspect.isclass(obj):
         if name != 'Attribute':
-            attributes[name] = obj
+            attribute_classes[name] = obj
