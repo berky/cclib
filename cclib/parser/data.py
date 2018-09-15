@@ -15,7 +15,7 @@ import numpy
 from cclib.method import Electrons
 from cclib.method import orbitals
 
-from cclib.parser.attribute import attributes
+from cclib.parser.attribute import attribute_classes
 
 
 class ccData(object):
@@ -95,7 +95,7 @@ class ccData(object):
     # The expected types for all supported attributes.
     # The json_key is the key name used for attributes in the CJSON/JSON format
     # 'TBD' - To Be Decided are the key names of attributes which haven't been included in the cjson format
-    _attributes = attributes
+    _attributes = attribute_classes
 
     # The name of all attributes can be generated from the dictionary above.
     _attrlist = sorted(_attributes.keys())
@@ -198,35 +198,22 @@ class ccData(object):
         valid = [a for a in attributes if a in self._attrlist]
         invalid = [a for a in attributes if a not in self._attrlist]
 
-        for attr in valid:
-            # `attr` is the string/name
-            print(attr, type(attributes[attr]), attributes[attr])
-            setattr(self, attr, attributes[attr])
-
-        self.typecheck()
+        for attrname in valid:
+            # If the attribute isn't an instance of a class of the same name,
+            # create it here.
+            if not isinstance(attributes[attrname], self._attributes[attrname]):
+                # print(attrname, type(attributes[attrname]), attributes[attrname])
+                # attributes[attrname] = self._attributes[attrname](attributes[attrname])
+                attribute = self._attributes[attrname]
+                attribute(attributes[attrname])
+                attributes[attrname] = attribute
+            # Then, check the type of its core implementation.
+            print(type(attributes[attrname]))
+            attributes[attrname].typecheck()
+            # print(attrname, type(attributes[attrname]), attributes[attrname])
+            setattr(self, attrname, attributes[attrname])
 
         return invalid
-
-    def typecheck(self):
-        """Check the types of all attributes.
-
-        If an attribute does not match the expected type, then attempt to
-        convert; if that fails, only then raise a TypeError.
-        """
-
-        # self.arrayify()
-        for attr in [a for a in self._attrlist if hasattr(self, a)]:
-            attr.typecheck()
-
-            # val = getattr(self, attr)
-            # if type(val) == self._attributes[attr].type:
-            #     continue
-
-            # try:
-            #     val = self._attributes[attr].type(val)
-            # except ValueError:
-            #     args = (attr, type(val), self._attributes[attr].type)
-            #     raise TypeError("attribute %s is %s instead of %s and could not be converted" % args)
 
     def check_values(self, logger=logging):
         """Perform custom checks on the values of attributes."""
