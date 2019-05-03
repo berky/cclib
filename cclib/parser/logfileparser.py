@@ -29,7 +29,6 @@ import numpy
 
 from cclib.parser import utils
 from cclib.parser.data import ccData
-from cclib.parser.data import ccData_optdone_bool
 
 
 # This seems to avoid a problem with Avogadro.
@@ -70,7 +69,7 @@ class myFileinputFile(fileinput.FileInput):
         return line
 
 
-class FileWrapper(object):
+class FileWrapper:
     """Wrap a file-like object or stream with some custom tweaks"""
 
     def __init__(self, source, pos=0):
@@ -194,7 +193,7 @@ class Logfile(object):
     """
 
     def __init__(self, source, loglevel=logging.ERROR, logname="Log",
-                 logstream=sys.stderr, datatype=ccData_optdone_bool, **kwds):
+                 logstream=sys.stderr, datatype=ccData, **kwds):
         """Initialise the Logfile object.
 
         This should be called by a subclass in its own __init__ method.
@@ -257,12 +256,6 @@ class Logfile(object):
         # normally be ccData or a subclass of it.
         self.datatype = datatype
 
-        # Change the class used if we want optdone to be a list or if the 'future' option
-        # is used, which might have more consequences in the future.
-        optdone_as_list = kwds.get("optdone_as_list", False) or kwds.get("future", False)
-        optdone_as_list = optdone_as_list if isinstance(optdone_as_list, bool) else False
-        if optdone_as_list:
-            self.datatype = ccData
         # Parsing of Natural Orbitals and Natural Spin Orbtials into one attribute
         self.unified_no_nso = kwds.get("future",False)
 
@@ -384,13 +377,13 @@ class Logfile(object):
 
         return data
 
+    @abstractmethod
     def before_parsing(self):
         """Set parser-specific variables and do other initial things here."""
-        pass
 
+    @abstractmethod
     def after_parsing(self):
         """Correct data or do parser-specific validation after parsing is finished."""
-        pass
 
     def updateprogress(self, inputfile, msg, xupdate=0.05):
         """Update progress."""
@@ -426,7 +419,7 @@ class Logfile(object):
 
         Note that this can be used for scalars and lists alike, whenever we want
         to set a value for an attribute.
-        
+
         Parameters
         ----------
         name: str

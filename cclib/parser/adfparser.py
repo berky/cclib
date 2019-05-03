@@ -100,6 +100,9 @@ class ADF(logfileparser.Logfile):
         SCFCNV, SCFCNV2 = list(range(2))  # used to index self.scftargets[]
         maxelem, norm = list(range(2))  # used to index scf.values
 
+    def after_parsing(self):
+        """ADF doesn't require anything extra after parsing a file."""
+
     def extract(self, inputfile, line):
         """Extract information from the file object inputfile."""
 

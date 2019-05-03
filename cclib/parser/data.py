@@ -8,7 +8,6 @@
 """Classes and tools for storing and handling parsed data"""
 
 import logging
-from collections import namedtuple
 
 import numpy
 
@@ -18,7 +17,7 @@ from cclib.method import orbitals
 from cclib.parser.attribute import attribute_classes
 
 
-class ccData(object):
+class ccData:
     """Stores data extracted by cclib parsers
 
     Description of cclib attributes:
@@ -192,7 +191,7 @@ class ccData(object):
                       means they are not specified in self._attrlist
         """
 
-        if type(attributes) is not dict:
+        if not isinstance(attributes, dict):
             raise TypeError("attributes must be in a dictionary")
 
         valid = [a for a in attributes if a in self._attrlist]
@@ -202,16 +201,9 @@ class ccData(object):
             # If the attribute isn't an instance of a class of the same name,
             # create it here.
             if not isinstance(attributes[attrname], self._attributes[attrname]):
-                # print(attrname, type(attributes[attrname]), attributes[attrname])
-                # attributes[attrname] = self._attributes[attrname](attributes[attrname])
-                attribute = self._attributes[attrname]
-                attribute(attributes[attrname])
-                attributes[attrname] = attribute
+                attributes[attrname] = self._attributes[attrname](attributes[attrname])
             # Then, check the type of its core implementation.
-            print(type(attributes[attrname]))
-            attributes[attrname].typecheck()
-            # print(attrname, type(attributes[attrname]), attributes[attrname])
-            setattr(self, attrname, attributes[attrname])
+            setattr(self, attrname, attributes[attrname].typecheck())
 
         return invalid
 
@@ -321,20 +313,3 @@ class ccData(object):
     @property
     def closed_shell(self):
         return orbitals.Orbitals(self).closed_shell()
-
-
-class ccData_optdone_bool(ccData):
-    """This is the version of ccData where optdone is a Boolean."""
-
-    def __init__(self, *args, **kwargs):
-
-        super(ccData_optdone_bool, self).__init__(*args, **kwargs)
-        self._attributes["optdone"] = Attribute(bool, 'done', 'optimization')
-
-    def setattributes(self, *args, **kwargs):
-        invalid = super(ccData_optdone_bool, self).setattributes(*args, **kwargs)
-
-        # Reduce optdone to a Boolean, because it will be parsed as a list. If this list has any element,
-        # it means that there was an optimized structure and optdone should be True.
-        if hasattr(self, 'optdone'):
-            self.optdone = len(self.optdone) > 0

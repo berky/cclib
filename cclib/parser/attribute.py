@@ -11,7 +11,18 @@ import inspect
 import numpy as np
 
 
+# class Singleton(type):
+#     _instances = dict()
+
+#     def __call__(cls, *args, **kwargs):
+#         if cls not in cls._instances:
+#             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+#         return cls._instances[cls]
+
+
+# class Attribute(metaclass=Singleton):
 class Attribute:
+    __slots__ = ("name", "main_type", "json_key", "json_path", "type", "attribute_path", "_impl")
 
     def __init__(self, name, main_type, json_key, json_path, *args, **kwargs):
 
@@ -25,19 +36,14 @@ class Attribute:
         self.attribute_path = json_path
 
         self._impl = None
-
-    def __call__(self, val=None):
-        if val:
-            self._impl = val
-            self.typecheck()
-        else:
-            if not self._impl:
-                raise AttributeError("{} doesn't contain any data".format(type(self)))
-            else:
-                return self._impl
+        if args:
+            self(args[0])
+            if args[1:]:
+                raise ValueError("too many args!")
 
     def __str__(self):
-        return str(self.__class__.__name__)
+        # return str(self.__class__.__name__)
+        return str(self._impl)
 
     def typecheck(self):
         """Check the types of all attributes.
@@ -47,7 +53,7 @@ class Attribute:
         """
 
         if type(self._impl) == self.main_type:
-            return
+            return self
 
         try:
             if self.main_type == np.ndarray:
@@ -55,8 +61,25 @@ class Attribute:
             else:
                 self._impl = self.main_type(self._impl)
         except ValueError:
-            args = (self.name, type(self._impl), self.main_type)
-            raise TypeError("attribute {} is {} instead of {} and could not be converted".format(*args))
+            "attribute {} is {} instead of {} "
+            "and could not be converted".format(
+                self.name, type(self._impl), self.main_type
+            )
+
+        return self
+
+    def __call__(self, val=None):
+        if val:
+            self._impl = val
+            self.typecheck()
+        else:
+            if self._impl is None:
+                raise AttributeError(
+                    "{} doesn't contain any data".format(type(self))
+                )
+            else:
+                return self._impl
+        return None
 
 
 class aonames(Attribute):
@@ -366,7 +389,7 @@ class natom(Attribute):
     """number of atoms (integer)"""
 
     def __init__(self, *args, **kwargs):
-        super(type(self), self).__init__('natom', int, 'number of atoms', 'properties'
+        super(type(self), self).__init__('natom', int, 'number of atoms', 'properties',
                                          *args, **kwargs)
 
 

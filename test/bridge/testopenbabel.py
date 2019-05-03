@@ -29,12 +29,13 @@ class OpenbabelTest(unittest.TestCase):
         obmol = cclib2openbabel.makeopenbabel(atomcoords, atomnos)
         obconversion = openbabel.OBConversion()
         formatok = obconversion.SetOutFormat("inchi")
+        assert formatok
         assert obconversion.WriteString(obmol).strip() == "InChI=1S/H2O/h1H2"
 
     def test_readfile(self):
         """Try to load an XYZ file with uracyl through Openbabel"""
         data = cclib2openbabel.readfile(self.path + "/uracil.xyz", "XYZ")
-        assert data.natom == 12
+        assert data.natom() == 12
 
 
 if __name__ == "__main__":

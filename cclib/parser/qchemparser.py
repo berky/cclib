@@ -692,8 +692,6 @@ cannot be determined. Rerun without `$molecule read`."""
 
             # Extract the atomic numbers and coordinates of the atoms.
             if 'Standard Nuclear Orientation (Angstroms)' in line:
-                if not hasattr(self, 'atomcoords'):
-                    self.atomcoords = []
                 self.skip_lines(inputfile, ['cols', 'dashes'])
                 atomelements = []
                 atomcoords = []
@@ -704,7 +702,7 @@ cannot be determined. Rerun without `$molecule read`."""
                     atomcoords.append(list(map(float, entry[2:])))
                     line = next(inputfile)
 
-                self.atomcoords.append(atomcoords)
+                self.atomcoords.append_attribute(atomcoords)
 
                 # We calculate and handle atomnos no matter what, since in
                 # the case of fragment calculations the atoms may change,
@@ -788,10 +786,8 @@ cannot be determined. Rerun without `$molecule read`."""
                 'Convergence failure'
             )
             if 'SCF converges when ' in line:
-                if not hasattr(self, 'scftargets'):
-                    self.scftargets = []
                 target = float(line.split()[-1])
-                self.scftargets.append([target])
+                self.scftargets.append_attributes([target])
 
                 # We should have the header between dashes now,
                 # but sometimes there are lines before the first dashes.
@@ -833,9 +829,7 @@ cannot be determined. Rerun without `$molecule read`."""
                     if any(message in line for message in scf_failure_messages):
                         break
 
-                if not hasattr(self, 'scfvalues'):
-                    self.scfvalues = []
-                self.scfvalues.append(numpy.array(values))
+                self.scfvalues.append_attribute(numpy.array(values))
 
             # Molecular orbital coefficients.
 
@@ -844,20 +838,16 @@ cannot be determined. Rerun without `$molecule read`."""
             # aonames/mocoeffs/moenergies block (which comes from
             # `print_orbitals = true`).
             if 'Final Alpha MO Coefficients' in line:
-                if not hasattr(self, 'mocoeffs'):
-                    self.mocoeffs = []
                 mocoeffs = QChem.parse_matrix(inputfile, self.nbasis, self.norbdisp_alpha, self.ncolsblock)
-                self.mocoeffs.append(mocoeffs.transpose())
+                self.mocoeffs.append_attribute(mocoeffs.transpose())
 
             if 'Final Beta MO Coefficients' in line:
                 mocoeffs = QChem.parse_matrix(inputfile, self.nbasis, self.norbdisp_beta, self.ncolsblock)
-                self.mocoeffs.append(mocoeffs.transpose())
+                self.mocoeffs.append_attribute(mocoeffs.transpose())
 
             if 'Total energy in the final basis set' in line:
-                if not hasattr(self, 'scfenergies'):
-                    self.scfenergies = []
                 scfenergy = float(line.split()[-1])
-                self.scfenergies.append(utils.convertor(scfenergy, 'hartree', 'eV'))
+                self.scfenergies.append_attribute(utils.convertor(scfenergy, 'hartree', 'eV'))
 
             # Geometry optimization.
 
@@ -873,13 +863,12 @@ cannot be determined. Rerun without `$molecule read`."""
                 maxg = utils.float(line_g[0])
                 maxd = utils.float(line_d[0])
                 ediff = utils.float(line_e[0])
-                geovalues = [maxg, maxd, ediff]
-                self.geovalues.append(geovalues)
+                self.geovalues.append_attribute([maxg, maxd, ediff])
 
             if '**  OPTIMIZATION CONVERGED  **' in line:
                 if not hasattr(self, 'optdone'):
                     self.optdone = []
-                self.optdone.append(len(self.atomcoords))
+                self.optdone.append_attribute(len(self.atomcoords))
 
             if '**  MAXIMUM OPTIMIZATION CYCLES REACHED  **' in line:
                 if not hasattr(self, 'optdone'):
@@ -924,10 +913,6 @@ cannot be determined. Rerun without `$molecule read`."""
 
             # This is the MP4/ccman case.
             if 'EHF' in line:
-                if not hasattr(self, 'mpenergies'):
-                    self.mpenergies = []
-                mpenergies = []
-
                 while list(set(line.strip())) != ['-']:
 
                     if 'EMP2' in line:
@@ -948,21 +933,17 @@ cannot be determined. Rerun without `$molecule read`."""
 
                 mpenergies = [utils.convertor(mpe, 'hartree', 'eV')
                               for mpe in mpenergies]
-                self.mpenergies.append(mpenergies)
+                self.mpenergies.append_attribute(mpenergies)
 
             # Coupled cluster corrections.
             # Hopefully we only have to deal with ccman2 here.
 
             if 'CCD total energy' in line:
-                if not hasattr(self, 'ccenergies'):
-                    self.ccenergies = []
                 ccdenergy = float(line.split()[-1])
                 ccdenergy = utils.convertor(ccdenergy, 'hartree', 'eV')
-                self.ccenergies.append(ccdenergy)
+                self.ccenergies.append_attribute(ccdenergy)
             if 'CCSD total energy' in line:
                 has_triples = False
-                if not hasattr(self, 'ccenergies'):
-                    self.ccenergies = []
                 ccsdenergy = float(line.split()[-1])
                 # Make sure we aren't actually doing CCSD(T).
                 line = next(inputfile)
@@ -971,10 +952,10 @@ cannot be determined. Rerun without `$molecule read`."""
                     has_triples = True
                     ccsdtenergy = float(line.split()[-1])
                     ccsdtenergy = utils.convertor(ccsdtenergy, 'hartree', 'eV')
-                    self.ccenergies.append(ccsdtenergy)
+                    self.ccenergies_append_attribute.append(ccsdtenergy)
                 if not has_triples:
                     ccsdenergy = utils.convertor(ccsdenergy, 'hartree', 'eV')
-                    self.ccenergies.append(ccsdenergy)
+                    self.ccenergies.append_attribute(ccsdenergy)
 
             # Electronic transitions. Works for both CIS and TDDFT.
             if 'Excitation Energies' in line:
@@ -1077,22 +1058,18 @@ cannot be determined. Rerun without `$molecule read`."""
 
             # Static and dynamic polarizability from mopropman.
             if 'Polarizability (a.u.)' in line:
-                if not hasattr(self, 'polarizabilities'):
-                    self.polarizabilities = []
                 while 'Full Tensor' not in line:
                     line = next(inputfile)
                 self.skip_line(inputfile, 'blank')
                 polarizability = [next(inputfile).split() for _ in range(3)]
-                self.polarizabilities.append(numpy.array(polarizability))
+                self.polarizabilities.append_attribute(numpy.array(polarizability))
 
             # Static polarizability from finite difference or
             # responseman.
             if line.strip() in ('Static polarizability tensor [a.u.]',
                                 'Polarizability tensor      [a.u.]'):
-                if not hasattr(self, 'polarizabilities'):
-                    self.polarizabilities = []
                 polarizability = [next(inputfile).split() for _ in range(3)]
-                self.polarizabilities.append(numpy.array(polarizability))
+                self.polarizabilities.append_attribute(numpy.array(polarizability))
 
             # Molecular orbital energies and symmetries.
             if line.strip() == 'Orbital Energies (a.u.) and Symmetries':
