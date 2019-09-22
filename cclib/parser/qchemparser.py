@@ -1425,6 +1425,18 @@ cannot be determined. Rerun without `$molecule read`."""
             # Start of the IR/Raman frequency section.
             if 'VIBRATIONAL ANALYSIS' in line:
 
+                # If these already exist, overwrite them so that the
+                # last entry in the "isotope" loop is the one always
+                # taken.
+                if hasattr(self, 'vibfreqs'):
+                    self.vibfreqs = []
+                if hasattr(self, 'vibirs'):
+                    self.vibirs = []
+                if hasattr(self, 'vibramans'):
+                    self.vibramans = []
+                if hasattr(self, 'vibdisps'):
+                    self.vibdisps = []
+
                 while 'STANDARD THERMODYNAMIC QUANTITIES' not in line:
                     ## IR, optional Raman:
                     #
@@ -1516,11 +1528,9 @@ cannot be determined. Rerun without `$molecule read`."""
 
             if 'STANDARD THERMODYNAMIC QUANTITIES AT' in line:
 
-                if not hasattr(self, 'temperature'):
-                    self.temperature = float(line.split()[4])
+                self.set_attribute('temperature', float(line.split()[4]))
                 # Not supported yet.
-                if not hasattr(self, 'pressure'):
-                    self.pressure = float(line.split()[7])
+                self.set_attribute('pressure', float(line.split()[7]))
                 self.skip_line(inputfile, 'blank')
 
                 line = next(inputfile)
@@ -1531,37 +1541,32 @@ cannot be determined. Rerun without `$molecule read`."""
                     line = next(inputfile)
                     # Not supported yet.
                     assert 'Zero point vibrational energy' in line
-                    if not hasattr(self, 'zpe'):
-                        # Convert from kcal/mol to Hartree/particle.
-                        self.zpe = utils.convertor(float(line.split()[4]),
-                                                   'kcal/mol', 'hartree')
+                    # Convert from kcal/mol to Hartree/particle.
+                    self.set_attribute('zpe',
+                                       utils.convertor(float(line.split()[4]), 'kcal/mol', 'hartree'))
                     atommasses = []
                     while 'Translational Enthalpy' not in line:
                         if 'Has Mass' in line:
                             atommass = float(line.split()[6])
                             atommasses.append(atommass)
                         line = next(inputfile)
-                    if not hasattr(self, 'atommasses'):
-                        self.atommasses = numpy.array(atommasses)
+                    if atommasses:
+                        self.set_attribute('atommasses', numpy.array(atommasses))
 
                 while line.strip():
                     line = next(inputfile)
 
                 line = next(inputfile)
                 assert 'Total Enthalpy' in line
-                if not hasattr(self, 'enthalpy'):
-                    enthalpy = float(line.split()[2])
-                    self.enthalpy = utils.convertor(enthalpy,
-                                                    'kcal/mol', 'hartree')
+                self.set_attribute('enthalpy',
+                                   utils.convertor(float(line.split()[2]), 'kcal/mol', 'hartree'))
                 line = next(inputfile)
                 assert 'Total Entropy' in line
-                if not hasattr(self, 'entropy'):
-                    entropy = float(line.split()[2]) * self.temperature / 1000
-                    # This is the *temperature dependent* entropy.
-                    self.entropy = utils.convertor(entropy,
-                                                   'kcal/mol', 'hartree')
-                if not hasattr(self, 'freeenergy'):
-                    self.freeenergy = self.enthalpy - self.entropy
+                entropy = float(line.split()[2]) * self.temperature / 1000
+                # This is the *temperature dependent* entropy.
+                self.set_attribute('entropy',
+                                   utils.convertor(entropy, 'kcal/mol', 'hartree'))
+                self.set_attribute('freeenergy', self.enthalpy - self.entropy)
 
         if line[:16] == ' Total job time:':
             self.metadata['success'] = True

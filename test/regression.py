@@ -2546,6 +2546,26 @@ def testQChem_QChem5_1_old_final_print_1_out(logfile):
     )
 
 
+def testQChem_QChem5_1_vib_isotopes_out(logfile):
+    """This job has multiple vibrational frequency analysis sections. Make
+    sure we're taking the last one for now.
+    """
+    assert logfile.data.temperature == 298.18
+    assert logfile.data.pressure == 1.00
+    numpy.testing.assert_equal(logfile.data.atommasses,
+                               [16.99913, 1.00783, 1.00783])
+
+
+def testQChem_QChem5_1_vib_tp_out(logfile):
+    """This job has multiple vibrational frequency analysis sections. Make
+    sure we're taking the last one for now.
+    """
+    assert logfile.data.temperature == 500.0
+    assert logfile.data.pressure == 1.00
+    numpy.testing.assert_equal(logfile.data.atommasses,
+                               [15.99491, 2.01410, 2.01410])
+
+
 def testQChem_QChem5_3_ccman2_soc_cisd_out(logfile):
     """This file has its atomcoords in bohr, which need to be converted."""
     convfac = 0.5291772109
