@@ -21,7 +21,10 @@ def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument('outputtype',
-                        choices=('json', 'cjson', 'cml', 'xyz', 'molden', 'wfx', 'qcjson'),
+                        choices=(
+                            'json', 'cjson', 'cml', 'molden', 'qcschema', 'wfx', 'xyz'
+                        ),
+                        type=str,
                         help='the output format to write (json/cjson are identical)')
     parser.add_argument('compchemlogfile',
                         nargs='+',
