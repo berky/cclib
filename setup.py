@@ -60,7 +60,6 @@ def setup_cclib():
             "periodictable",
             "scipy>=1.2.0",
         ],
-
     )
 
 

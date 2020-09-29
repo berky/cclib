@@ -10,27 +10,19 @@
 import logging
 
 import numpy as np
+import periodictable as pt
 
 from cclib.method.calculationmethod import Method
 from cclib.parser.utils import PeriodicTable
 from cclib.parser.utils import find_package
-
-_found_periodictable = find_package("periodictable")
-if _found_periodictable:
-    import periodictable as pt
 
 _found_scipy = find_package("scipy")
 if _found_scipy:
     import scipy.constants
 
 
-def _check_periodictable(found_periodictable):
-    if not _found_periodictable:
-        raise ImportError("You must install `periodictable` to use this function")
-
-
 def _check_scipy(found_scipy):
-    if not _found_scipy:
+    if not found_scipy:
         raise ImportError("You must install `scipy` to use this function")
 
 
@@ -51,14 +43,12 @@ def get_isotopic_masses(charges):
     """Return the masses for the given nuclei, respresented by their
     nuclear charges.
     """
-    _check_periodictable(_found_periodictable)
-    masses = []
-    for charge in charges:
-        el = pt.elements[charge]
-        isotope = get_most_abundant_isotope(el)
-        mass = isotope.mass
-        masses.append(mass)
-    return np.array(masses)
+    return np.array(
+        [
+            get_most_abundant_isotope(pt.elements[charge]).mass
+            for charge in charges
+        ]
+    )
 
 
 class Nuclear(Method):
