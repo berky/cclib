@@ -22,6 +22,8 @@ class QCSchemaWriter(CJSONWriter):
         super(QCSchemaWriter, self).__init__(ccdata, *args, **kwargs)
 
     def as_dict(self):
+        metadata = self.ccdata.metadata
+
         qcschema_dict = dict()
 
         qcschema_dict["schema_name"] = "qcschema_output"
@@ -41,8 +43,6 @@ class QCSchemaWriter(CJSONWriter):
             driver = "energy"
         qcschema_dict["driver"] = driver
 
-        metadata = self.ccdata.metadata
-
         qcschema_dict["success"] = metadata["success"]
 
         # FIXME
@@ -54,6 +54,8 @@ class QCSchemaWriter(CJSONWriter):
         # TODO methods should be an enum
         if metadata["methods"]:
             method = metadata["methods"][-1]
+            if method == "DFT":
+                method = metadata["functional"]
         else:
             # FIXME
             method = "HF"
@@ -81,6 +83,9 @@ class QCSchemaWriter(CJSONWriter):
         ccsd_total_energy = None
 
         if method == "HF":
+            return_energy = scf_total_energy
+        elif metadata["methods"][-1] == "DFT":
+            # TODO parse XC energy
             return_energy = scf_total_energy
         elif method == "CCSD":
             mp2_total_energy = convertor(
